@@ -1,7 +1,13 @@
 "use client";
 import { Img } from "./elements";
 import { PredictionBox } from "./types";
-import { SyntheticEvent, useState } from "react";
+import {
+  SyntheticEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 export function PredictionView({
   title,
@@ -17,37 +23,53 @@ export function PredictionView({
     height: number;
   }>();
 
-  function updateScaleFactor({
-    width,
-    height,
-  }: {
-    width: number;
-    height: number;
-  }) {
-    setScaleFactor({
-      width: width / dimensions.width,
-      height: height / dimensions.height,
-    });
-  }
+  const updateScaleFactor = useCallback(
+    ({ width, height }: { width: number; height: number }) => {
+      setScaleFactor({
+        width: width / dimensions.width,
+        height: height / dimensions.height,
+      });
+    },
+    [dimensions.height, dimensions.width]
+  );
 
-  console.log(scaleFactor);
+  const handleSize = useCallback(
+    (e: SyntheticEvent<HTMLImageElement, Event>) => {
+      console.log("resize");
+      if (!e.nativeEvent.target) return;
+      const imgEl = e.nativeEvent.target as HTMLImageElement;
+      updateScaleFactor({
+        width: imgEl.offsetWidth,
+        height: imgEl.offsetHeight,
+      });
+    },
+    [updateScaleFactor]
+  );
 
-  const handleSize = (e: SyntheticEvent<HTMLImageElement, Event>) => {
-    if (!e.nativeEvent.target) return;
-    const imgEl = e.nativeEvent.target as HTMLImageElement;
-    updateScaleFactor({
-      width: imgEl.offsetWidth,
-      height: imgEl.offsetHeight,
-    });
-  };
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    if (imgRef.current) {
+      const imgEl = imgRef.current;
+      const resizeObserver = new ResizeObserver(([entry]) => {
+        const { width, height } = entry.contentRect;
+        updateScaleFactor({ width, height });
+      });
+
+      resizeObserver.observe(imgEl);
+      return () => {
+        resizeObserver.disconnect();
+      };
+    }
+  }, [updateScaleFactor]);
 
   return (
     <div className="relative">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <Img
+        ref={imgRef}
         className="block w-full h-full object-contain object-center"
         onLoad={handleSize}
-        onResize={handleSize}
         alt={title}
         src="/orange.jpg"
       />
