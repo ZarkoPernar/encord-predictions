@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { z } from "zod";
 import { PredictionBox, predictionsResponseSchema } from "./types";
+import { Form } from "./elements";
 
 const formSchema = z.object({
   title: z.string(),
@@ -25,15 +26,15 @@ export function PredictionForm({
   }) => void;
 }) {
   return (
-    <form
+    <Form
       action={async (form) => {
-        console.log("fdsdsfsdf");
         try {
           const parsedData = formSchema.parse(
             Object.fromEntries(form.entries())
           );
           const response = await fetch("http://localhost:3001/predict/");
           const responseData = await response.json();
+          console.log(responseData);
           const data = predictionsResponseSchema.parse(responseData);
           onSuccess({ ...parsedData, ...data });
           toast(`${parsedData.title} prediction created`);
@@ -67,6 +68,6 @@ export function PredictionForm({
           Save changes
         </Button>
       </DialogFooter>
-    </form>
+    </Form>
   );
 }

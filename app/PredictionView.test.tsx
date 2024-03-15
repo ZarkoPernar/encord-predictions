@@ -50,7 +50,6 @@ test("renders PredictionView with correct image and predictions", async () => {
   // Initially, no predictions are rendered until the image is loaded and scale factor is set
   expect(queryByLabelText(/Apple/i)).not.toBeInTheDocument();
 
-  await new Promise((resolve) => setTimeout(resolve, 10));
   // Simulate image load to trigger scale factor calculation and rendering of predictions
   act(() => {
     _onLoad({
